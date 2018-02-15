@@ -3,15 +3,14 @@ import urllib2
 from datetime import datetime, date, timedelta
 import os, time, httplib
 
-
 url_status = [
 	"http://35.204.86.158:46657/status", 
-	"http://35.204.86.158:46657/status",
+	# "http://35.204.86.158:46657/status",
 ]
 
 url_net_info = [
     "http://35.204.86.158:46657/net_info",
-    "http://35.204.86.158:46657/net_info",
+    # "http://35.204.86.158:46657/net_info",
 ]
 
 url_live = [
@@ -19,6 +18,39 @@ url_live = [
 	"35.204.86.158:46657",
 	"127.0.0.1:8000",
 ]
+
+
+#Monitor % of blocks committed by each validator
+def block_height():
+    	start = 2
+        url_block = []
+        for number in range (start, 11):
+            block = 'http://35.204.86.158:46657/block?height=' + str(number)
+            url_block.append(block)
+        total_blocks = len(url_block)+1 
+        
+	class Block():
+		def __init__(self, json):
+		    self.block=json["result"]["block"]["last_commit"]["precommits"]
+	counts = dict()
+	for i in url_block:
+    	   url_data = json.load(urllib2.urlopen(i))
+    	   foo = Block (url_data)
+    	   for k in foo.block:
+    	       try:
+    	           if k['validator_address']:
+    	               if k['validator_address'] not in counts:
+    	                   counts[k['validator_address']] = 1    	                   
+    	               else:
+    	                   counts[k['validator_address']] += 1 
+    	       except:
+    	           pass
+    	#print counts
+    	for key, value in counts.items():
+    	    participation = (value * 100) / total_blocks 
+    	    print key, participation,'%'
+block_height() 
+
 
 # Monitor block time
 def status():
@@ -47,6 +79,7 @@ def net_info():
     	foo = Info (url_data)
     	if len(foo.info) < 20:
     		print "Insufficient peers!"
+
 net_info()    
 
 
@@ -64,4 +97,21 @@ while (True):
 		conn.close()
 	time.sleep(20)
 
-	
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
