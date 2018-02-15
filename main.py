@@ -24,10 +24,10 @@ url_live = [
 def block_height():
     	start = 2
         url_block = []
-        for number in range (start, 11):
+        for number in range (start, 12):
             block = 'http://35.204.86.158:46657/block?height=' + str(number)
             url_block.append(block)
-        total_blocks = len(url_block)+1 
+        total_blocks = len(url_block) 
         
 	class Block():
 		def __init__(self, json):
