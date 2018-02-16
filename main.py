@@ -22,9 +22,9 @@ url_live = [
 
 #Monitor % of blocks committed by each validator
 def block_height():
-        start = 2
+        start = 1000
         url_block = []
-        for number in range (start, 500):
+        for number in range (start, 1100):
             block = 'http://35.204.86.158:46657/block?height=' + str(number)
             url_block.append(block)
         total_blocks = len(url_block) 
@@ -37,19 +37,19 @@ def block_height():
             url_data = json.load(urllib2.urlopen(i))
             foo = Block (url_data)
             print("Got " + i)
-        for k in foo.block:
-                try:
-                    if k['validator_address']:
-                        if k['validator_address'] not in counts:
-                            counts[k['validator_address']] = 1    	                   
-                        else:
-                            counts[k['validator_address']] += 1 
-                except:
-                    pass
+            for k in foo.block:
+                    try:
+                        if k['validator_address']:
+                            if k['validator_address'] not in counts:
+                                counts[k['validator_address']] = 1    	                   
+                            else:
+                                counts[k['validator_address']] += 1 
+                    except:
+                        pass
             #print counts
         for key, value in counts.items():
             participation = (value * 100) / total_blocks 
-            print(key, participation,'%')
+            print(key +" "+ str(participation) + '%')
 
 block_height() 
 
@@ -80,7 +80,7 @@ def net_info():
         url_data = json.load(urllib2.urlopen(i))
         foo = Info (url_data)
         if len(foo.info) < 20:
-            print "Insufficient peers!"
+            print ("Insufficient peers!")
 
 net_info()    
 
