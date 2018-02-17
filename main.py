@@ -135,6 +135,7 @@ def status():
     for key, value in counts.items():
         participation = (value * 100) / total_blocks 
         print(key +" "+ str(participation) + '%')
+        
 status()
 
 
