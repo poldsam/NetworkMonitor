@@ -68,11 +68,11 @@ def net_info():
 		state = Dump (url_data)
 		for k in peer_ip:
 			print state.dump[k]['Height']
-			
+
 net_info() 
 
 
-# check block status and % of blocks committed by each validator
+# Check block status and % of blocks committed by each validator
 def status():
     class Status():
            def __init__(self, json):
@@ -82,7 +82,7 @@ def status():
     for i in url:
     	url_status.append("http://"+ i + "/status")
 
-# check if block time is under 2min
+	# check if block time is under 2min
     for i in url_status:
         url_data = json.load(urllib2.urlopen(i))
         foo = Status (url_data)
@@ -98,7 +98,7 @@ def status():
         	print colored("Lastest block time (utc) - " + str(block_time), 'green')
         	print colored("Latest block height - " + str(block_height), 'green')
 
-# scan all blocks
+		# scan all blocks
     	start = block_height-2
     	end = block_height+1
     	url_block = []
