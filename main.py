@@ -4,29 +4,21 @@ from datetime import datetime, date, timedelta
 import os, time, httplib
 from termcolor import colored
 
-url_status = [
-    "http://35.204.86.158:46657/status", 
-]
 
-url_net_info = [
-    "http://35.204.86.158:46657/net_info",
-]
-
-url_live = [
+url = [
     "35.204.86.158:46657",
 ]
 
 
-# Monitor if site is up and running
+# Monitor that site is up and running
 def site_running():
 # while (True):
-    for i in url_live:
+    for i in url:
         conn = httplib.HTTPConnection(i, timeout=10)
         try:
             conn.request("HEAD", "/")
             response = conn.getresponse()
             if response.status == 200:
-            	# print colored(i, response.status, response.reason, 'green')
             	print colored(i + ' ' + response.reason , 'green')
     	except:
     		print colored("Cannot reach " + i, 'red')
@@ -35,12 +27,18 @@ def site_running():
     # time.sleep(1000)
 site_running()
 
-# Number of peer nodes
+
+# Get number of peer nodes and peer round stats
 def net_info():
     class Info():
         def __init__(self, json):
             self.info=json["result"]["peers"]
-                
+
+    url_net_info = []
+    for i in url:
+    	url_net_info.append("http://"+ i + "/net_info")
+
+# check if sufficient # of peers is available
     for i in url_net_info:
         url_data = json.load(urllib2.urlopen(i))
         foo = Info (url_data)
@@ -49,14 +47,41 @@ def net_info():
         else:
         	print colored("Current number of peers - " + str(len(foo.info)), 'green')
 
-net_info()  
+	
+# get list of peer IP addresses from net_info
+	peer_ip = []
+	for k in foo.info:
+		peer_ip.append(k['node_info']['listen_addr'])
 
-# Block status and % of blocks committed by each validator
+
+# monitor peer round stats
+	class Dump():
+		def __init__(self, json):
+			self.dump=json["result"]["peer_round_states"]
+
+    url_dump = []
+    for i in url:
+    	url_dump.append("http://"+ i + "/dump_consensus_state")
+
+	for i in url_dump:
+		url_data = json.load(urllib2.urlopen(i))
+		state = Dump (url_data)
+		for k in peer_ip:
+			# print state.dump[k]['Height']
+net_info() 
+
+
+# check block status and % of blocks committed by each validator
 def status():
     class Status():
            def __init__(self, json):
             self.status=json["result"]
                 
+    url_status = []
+    for i in url:
+    	url_status.append("http://"+ i + "/status")
+
+# check if block time is under 2min
     for i in url_status:
         url_data = json.load(urllib2.urlopen(i))
         foo = Status (url_data)
@@ -72,7 +97,8 @@ def status():
         	print colored("Lastest block time (utc) - " + str(block_time), 'green')
         	print colored("Latest block height - " + str(block_height), 'green')
 
-    	start = block_height-20
+# scan all blocks
+    	start = block_height-2
     	end = block_height+1
     	url_block = []
         for number in range (start, end):
@@ -98,7 +124,6 @@ def status():
                                 counts[k['validator_address']] += 1 
                     except:
                         pass
-            #print counts
         for key, value in counts.items():
             participation = (value * 100) / total_blocks 
             print(key +" "+ str(participation) + '%')
