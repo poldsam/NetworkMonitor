@@ -105,36 +105,36 @@ def status():
                 pass
 
 
-		# scan all blocks
-    	start = block_height-2
-    	end = block_height+1
-    	url_block = []
-        for number in range (start, end):
-            block = 'http://35.204.86.158:46657/block?height=' + str(number)
-            url_block.append(block)
-        total_blocks = len(url_block) 
-        
-        class Block():
-            def __init__(self, json):
-                self.block=json["result"]["block"]["last_commit"]["precommits"]
-        counts = dict()
-        print ("Scanning all blocks...")
-        for i in url_block:
-            url_data = json.load(urllib2.urlopen(i))
-            foo = Block (url_data)
-            # print("Got " + i)
-            for k in foo.block:
-                    try:
-                        if k['validator_address']:
-                            if k['validator_address'] not in counts:
-                                counts[k['validator_address']] = 1    	                   
-                            else:
-                                counts[k['validator_address']] += 1 
-                    except:
-                        pass
-        for key, value in counts.items():
-            participation = (value * 100) / total_blocks 
-            print(key +" "+ str(participation) + '%')
+	# scan all blocks
+	start = block_height-2
+	end = block_height+1
+	url_block = []
+    for number in range (start, end):
+        block = 'http://35.204.86.158:46657/block?height=' + str(number)
+        url_block.append(block)
+    total_blocks = len(url_block) 
+    
+    class Block():
+        def __init__(self, json):
+            self.block=json["result"]["block"]["last_commit"]["precommits"]
+    counts = dict()
+    print ("Scanning all blocks...")
+    for i in url_block:
+        url_data = json.load(urllib2.urlopen(i))
+        foo = Block (url_data)
+        # print("Got " + i)
+        for k in foo.block:
+                try:
+                    if k['validator_address']:
+                        if k['validator_address'] not in counts:
+                            counts[k['validator_address']] = 1    	                   
+                        else:
+                            counts[k['validator_address']] += 1 
+                except:
+                    pass
+    for key, value in counts.items():
+        participation = (value * 100) / total_blocks 
+        print(key +" "+ str(participation) + '%')
 status()
 
 
