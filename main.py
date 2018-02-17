@@ -2,6 +2,7 @@ import json
 import urllib2
 from datetime import datetime, date, timedelta
 import os, time, httplib
+from termcolor import colored
 
 url_status = [
     "http://35.204.86.158:46657/status", 
@@ -24,10 +25,12 @@ def site_running():
         try:
             conn.request("HEAD", "/")
             response = conn.getresponse()
-            print i, response.status, response.reason
-        except:
-            print ("Cannot reach " + i)
-            pass
+            if response.status == 200:
+            	# print colored(i, response.status, response.reason, 'green')
+            	print colored(i + ' ' + response.reason , 'green')
+    	except:
+    		print colored("Cannot reach " + i, 'red')
+    		pass
         conn.close()
     # time.sleep(1000)
 site_running()
@@ -42,9 +45,9 @@ def net_info():
         url_data = json.load(urllib2.urlopen(i))
         foo = Info (url_data)
         if len(foo.info) < 5:
-            print ("Less than 5 peers! Current number of peers - " + str(len(foo.info)))
+            print colored("Insufficient peers - under 5 peers available!  Current count " + str(len(foo.info)) + " peers", 'red')
         else:
-        	print ("Current number of peers - " + str(len(foo.info)))
+        	print colored("Current number of peers - " + str(len(foo.info)), 'green')
 
 net_info()  
 
@@ -59,14 +62,15 @@ def status():
         foo = Status (url_data)
         block_height =  foo.status['latest_block_height']
         block_time =  datetime.strptime(foo.status['latest_block_time'], '%Y-%m-%dT%H:%M:%S.%fZ')
+        delta = (datetime.utcnow() - block_time).days * 24 * 60
         if block_time < datetime.utcnow()-timedelta(seconds=120):
-            print ("Late block - public consensus error!")
-            print ("Latest block height " + str(block_height))
-            print ("Lastest block time (utc) " + str(block_time))
+            print colored("Late block - public consensus error! Delay " + str(delta) + " min", 'red')
+            print colored("Lastest block time (utc) - " + str(block_time), 'green')
+            print colored("Latest block height - " + str(block_height), 'green')
         else:
-        	print ("Consensus - OK")
-        	print ("Latest block height - " + str(block_height))
-        	print ("Lastest block time (utc) - " + str(block_time))
+        	print colored("Consensus - OK", 'green')
+        	print colored("Lastest block time (utc) - " + str(block_time), 'green')
+        	print colored("Latest block height - " + str(block_height), 'green')
 
     	start = block_height-20
     	end = block_height+1
