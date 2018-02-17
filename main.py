@@ -38,7 +38,7 @@ def net_info():
     for i in url:
     	url_net_info.append("http://"+ i + "/net_info")
 
-# check if sufficient # of peers is available
+	# check if sufficient # of peers is available
     for i in url_net_info:
         url_data = json.load(urllib2.urlopen(i))
         foo = Info (url_data)
@@ -48,13 +48,13 @@ def net_info():
         	print colored("Current number of peers - " + str(len(foo.info)), 'green')
 
 	
-# get list of peer IP addresses from net_info
+	# get list of peer IP addresses from net_info
 	peer_ip = []
 	for k in foo.info:
 		peer_ip.append(k['node_info']['listen_addr'])
 
 
-# monitor peer round stats
+	# monitor peer round stats
 	class Dump():
 		def __init__(self, json):
 			self.dump=json["result"]["peer_round_states"]
@@ -67,7 +67,8 @@ def net_info():
 		url_data = json.load(urllib2.urlopen(i))
 		state = Dump (url_data)
 		for k in peer_ip:
-			# print state.dump[k]['Height']
+			print state.dump[k]['Height']
+			
 net_info() 
 
 
