@@ -97,8 +97,12 @@ def status():
 	for i in url_dump:
 		url_data = json.load(urllib2.urlopen(i))
 		state = Dump (url_data)
-		for k in peer_ip:
-			print state.dump[k]['Height']
+        for k in peer_ip:
+            # print state.dump[k]['Height']
+            if state.dump[k]['Height'] != block_height+1:
+                print colored("Block height different - " + k + ' ' + "(height " + str(state.dump[k]['Height'])+ ")", 'red')
+            else:
+                pass
 
 
 		# scan all blocks
