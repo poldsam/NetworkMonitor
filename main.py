@@ -138,37 +138,8 @@ def status():
     for key, value in counts.items():
         participation = (value * 100) / total_blocks
         print(key +" "+ str(participation) + '%')
-<<<<<<< HEAD
-||||||| merged common ancestors
         
 status()
 
 
   
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-=======
-
-status()
->>>>>>> e65445c551dc2f0ed14f6dcac1817d0e40c8b394
-
-status()
