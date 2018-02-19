@@ -6,7 +6,7 @@ from termcolor import colored
 
 
 url = [
-    "165.227.246.236:46657",
+    "35.204.86.158:46657",
 ]
 
 
@@ -106,7 +106,7 @@ def status():
 
 
 	# scan all blocks
-	start = block_height-50
+	start = block_height-1000
 	end = block_height+1
 	url_block = []
 
