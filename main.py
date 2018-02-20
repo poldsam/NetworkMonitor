@@ -86,12 +86,12 @@ def dump_consensus(i):
         else:
             pass
 
-
 # Scan all blocks
 def scan(i):
     start = block_height - 10
     end = block_height + 1
     url_block = []
+
     for number in range (start, end):
         block = ("http://"+ i + "/block?height=" + str(number))
         url_block.append(block)
