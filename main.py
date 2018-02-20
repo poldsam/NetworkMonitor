@@ -6,7 +6,7 @@ from termcolor import colored
 
 
 url = [
-    "165.227.246.236:46657",
+    "35.204.86.158:46657",
 ]
 
 
@@ -106,7 +106,7 @@ def status():
 
 
 	# scan all blocks
-	start = block_height-50
+	start = block_height-100
 	end = block_height+1
 	url_block = []
 
@@ -125,7 +125,7 @@ def status():
     for i in url_block:
         url_data = json.load(urllib2.urlopen(i))
         foo = Block (url_data)
-        # print("Got " + i)
+        print("Got " + i)
         for k in foo.block:
                 try:
                     if k['validator_address']:
