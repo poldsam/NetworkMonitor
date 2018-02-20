@@ -12,17 +12,16 @@ url = [
 
 # Monitor that site is up and running
 def site_running(i):
-    # for i in url:
-        conn = httplib.HTTPConnection(i, timeout=10)
-        try:
-            conn.request("HEAD", "/")
-            response = conn.getresponse()
-            if response.status == 200:
-            	print colored(i +  '200 -' + ' ' + response.reason, 'green')
-    	except:
-    		print colored("Cannot reach " + i, 'red')
-    		pass
-        conn.close()
+    conn = httplib.HTTPConnection(i, timeout=10)
+    try:
+        conn.request("HEAD", "/")
+        response = conn.getresponse()
+        if response.status == 200:
+            print colored(i + ' - ' + response.reason, 'green')
+    except:
+        print colored("Cannot reach " + i, 'red')
+        pass
+    conn.close()
 
 
 # Check if block time is under 2min
@@ -64,7 +63,7 @@ def net_info(i):
     else:
         print colored("Current number of nodes - " + str(len(foo.info)), 'green')
 
-    # get list of node IP addresses from net_info
+    # get list of node IP addresses 
     node_ip = []
     for k in foo.info:
       node_ip.append(k['node_info']['listen_addr'])
@@ -77,6 +76,7 @@ def dump_consensus(i):
     class Dump():
         def __init__(self, json):
             self.dump=json["result"]["peer_round_states"]
+
     url_data = json.load(urllib2.urlopen("http://"+ i + "/dump_consensus_state"))
     state = Dump (url_data)
     for k in node_ip:
@@ -86,23 +86,22 @@ def dump_consensus(i):
         else:
             pass
 
-
 # Scan all blocks
 def scan(i):
-    start = block_height - 10
-    end = block_height + 1
-    url_block = []
-    for number in range (start, end):
-        block = ("http://"+ i + "/block?height=" + str(number))
-        url_block.append(block)
-
-    total_blocks = len(url_block)
-
     #create class
     class Block():
         def __init__(self, json):
             self.block=json["result"]["block"]["last_commit"]["precommits"]
 
+    start = block_height - 50
+    end = block_height + 1
+    url_block = []
+
+    for number in range (start, end):
+        block = ("http://"+ i + "/block?height=" + str(number))
+        url_block.append(block)
+
+    total_blocks = len(url_block)
     counts = dict()
     print ("Scanning all blocks...")
     for i in url_block:
@@ -135,7 +134,6 @@ for i in url:
         print '\n'
     except:
         pass
-
 
 
         
