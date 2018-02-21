@@ -36,8 +36,8 @@ def status(i):
     url_data = json.load(urllib2.urlopen("http://"+ i + "/status"))
     foo = Status (url_data)
     block_height =  foo.status['latest_block_height']
-    block_time = foo.status['latest_block_time']
-    block_time = datetime.strptime(block_time, '%Y-%m-%dT%H:%M:%SZ')
+    latest_block_time = foo.status['latest_block_time']
+    block_time = datetime.strptime(latest_block_time, '%Y-%m-%dT%H:%M:%SZ')
     # block_time =  datetime.strptime(foo.status['latest_block_time'], '%Y-%m-%dT%H:%M:%S.%fZ')
     # delta = (datetime.utcnow() - block_time).days * 24 * 60
     delta = datetime.utcnow() - block_time
