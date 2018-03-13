@@ -48,6 +48,7 @@ def status(i):
         print colored("Consensus - OK", 'green')
         print colored("Lastest block time (utc) - " + str(block_time), 'green')
         print colored("Latest block height - " + str(block_height), 'green')
+     
 
 
      
@@ -91,22 +92,30 @@ def dump_consensus(i):
 
 # Scan all blocks
 def scan(i):
-    #create class
+    #create classes
     class Block():
         def __init__(self, json):
             self.block=json["result"]["block"]["last_commit"]["precommits"]
 
-    start = block_height - 50
+    class ValidatorsHeight():
+        def __init__(self, json):
+            self.validatorsheigh=json["result"]["validators"]
+
+    start = block_height - 5
     end = block_height + 1
     url_block = []
+    url_validators = []
 
     for number in range (start, end):
         block = ("http://"+ i + "/block?height=" + str(number))
+        validators_height = ("http://"+ i + "/validators?height=" + str(number))
         url_block.append(block)
+        url_validators.append(validators_height)
 
+    # count block validators
     total_blocks = len(url_block)
-    counts = dict()
-    print ("Scanning all blocks...")
+    blockcount = dict()
+    print colored ("Scanning all blocks...", 'green')
     for i in url_block:
         url_data = json.load(urllib2.urlopen(i))
         foo = Block (url_data)
@@ -114,19 +123,45 @@ def scan(i):
         for k in foo.block:
                 try:
                     if k['validator_address']:
-                        if k['validator_address'] not in counts:
-                            counts[k['validator_address']] = 1
+                        if k['validator_address'] not in blockcount:
+                            blockcount[k['validator_address']] = 1
                         else:
-                            counts[k['validator_address']] += 1
+                            blockcount[k['validator_address']] += 1
                 except:
                     pass
-    for key, value in counts.items():
+
+    for key, value in blockcount.items():
         participation = (value * 100) / total_blocks
         print(key +" "+ str(participation) + '%')
 
 
+    # count validators at block height 
+    print colored ("Calculating uptime...", 'green')
+    validatorscount = dict()
+    for i in url_validators:
+        url_data = json.load(urllib2.urlopen(i))
+        foo = ValidatorsHeight (url_data)
+        # print("Got " + i)
+        for k in foo.validatorsheigh:
+            try:
+                if k['address']:
+                    if k['address'] not in validatorscount:
+                        validatorscount[k['address']] = 1
+                    else:
+                        validatorscount[k['address']] += 1  
+            except:
+                pass
 
-#Global loop for url list
+    # calculate uptime
+    for key in blockcount:
+        expected = validatorscount[key]
+        actual = blockcount[key]
+        uptime = (actual * 100) / expected
+        print(key +" "+ str(uptime) + '%')
+
+    
+
+# Global loop for url list
 for i in url:
     try:
         site_running(i)
