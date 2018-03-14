@@ -7,7 +7,8 @@ from termcolor import colored
 
 
 url = [
-    "35.204.86.158:46657",
+    "35.184.206.51:46657",
+    "35.224.148.135:46657"
 ]
 
 
@@ -23,6 +24,7 @@ def site_running(i):
         print colored("Cannot reach " + i, 'red')
         pass
     conn.close()
+
 
 
 # Check if block time is under 2min
@@ -51,7 +53,6 @@ def status(i):
      
 
 
-     
 # Check if sufficient # of nodes are available
 def net_info(i):
     global node_ip
@@ -74,7 +75,7 @@ def net_info(i):
 
 
 
-# Check if all block heighs are in sync
+# Check if all block heights are in sync
 def dump_consensus(i):
     #create class
     class Dump():
@@ -82,13 +83,26 @@ def dump_consensus(i):
             self.dump=json["result"]["peer_round_states"]
 
     url_data = json.load(urllib2.urlopen("http://"+ i + "/dump_consensus_state"))
+
+    #get peer round states to check what validators think the block heigh should be
     state = Dump (url_data)
     for k in node_ip:
-        # print state.dump[k]['Height']
-        if state.dump[k]['Height'] != block_height+1:
-            print colored("Block height different - " + k + ' ' + "(height " + str(state.dump[k]['Height'])+ ")", 'red')
-        else:
+        try:
+            # compare peer round states to actual block height for consensus
+            if state.dump[k]['Height'] != block_height+1:
+                print colored("Block height different - " + k + ' ' + "(height " + str(state.dump[k]['Height'])+ ")", 'red')
+            else:
+                pass
+        except:
             pass
+        try:
+            if state.dump["891023d33e161bafff356b74ea44730d295342b9"]['Height'] != block_height+1:
+                print colored("Block height different - " + ' ' + "(height " + str(state.dump["891023d33e161bafff356b74ea44730d295342b9"]['Height'])+ ")", 'red')
+            else:
+                pass
+        except:
+            pass
+
 
 # Scan all blocks
 def scan(i):
@@ -130,6 +144,7 @@ def scan(i):
                 except:
                     pass
 
+    # % of blocks validator participated in out of all blocks committed
     for key, value in blockcount.items():
         participation = (value * 100) / total_blocks
         print(key +" "+ str(participation) + '%')
@@ -152,7 +167,7 @@ def scan(i):
             except:
                 pass
 
-    # calculate uptime
+    # calculate uptime for each validator 
     for key in blockcount:
         expected = validatorscount[key]
         actual = blockcount[key]
@@ -161,17 +176,16 @@ def scan(i):
 
     
 
-# Global loop for url list
+# Global loop for list of urls
 for i in url:
-    try:
-        site_running(i)
-        status(i)
-        net_info(i)
-        dump_consensus(i)
-        scan(i)
-        print '\n'
-    except:
-        pass
+    site_running(i)
+    status(i)
+    net_info(i)
+    dump_consensus(i)
+    scan(i)
+    print '\n'
+
+
 
 
         
