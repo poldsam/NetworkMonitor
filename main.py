@@ -44,7 +44,7 @@ def status(i):
     if block_time < datetime.utcnow() -timedelta(seconds=120):
         print colored("Late block - public consensus error! Delay " + str(delta), 'red')
         # print colored("Late block - public consensus error!",'red')
-        print colored("Lastest block time (utc) - " + str(block_time), 'green')
+        print colored("Latest block time (utc) - " + str(block_time), 'green')
         print colored("Latest block height - " + str(block_height), 'green')
     else:
         print colored("Consensus - OK", 'green')
