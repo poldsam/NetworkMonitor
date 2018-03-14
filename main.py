@@ -63,7 +63,9 @@ def net_info(i):
 
     url_data = json.load(urllib2.urlopen("http://"+ i + "/net_info"))
     foo = Info (url_data)
-    if len(foo.info) < 5:
+    if len(foo.info) == 1:
+        print colored("Insufficient nodes - under 5 nodes available!  Current count " + str(len(foo.info)) + " node", 'red')
+    if 1 < len(foo.info) < 5:
         print colored("Insufficient nodes - under 5 nodes available!  Current count " + str(len(foo.info)) + " nodes", 'red')
     else:
         print colored("Current number of nodes - " + str(len(foo.info)), 'green')
