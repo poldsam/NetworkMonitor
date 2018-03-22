@@ -4,6 +4,9 @@ import datetime
 from datetime import datetime, date, timedelta
 import os, time, httplib
 from termcolor import colored
+import time
+
+
 
 
 url = [
@@ -107,6 +110,9 @@ def dump_consensus(i):
 
 
 # Scan all blocks
+# saved in db
+last_run = 12460
+
 def scan(i):
     #create classes
     class Block():
@@ -117,7 +123,19 @@ def scan(i):
         def __init__(self, json):
             self.validatorsheigh=json["result"]["validators"]
 
-    start = block_height - 5
+    # block heigh for interval loop
+    class Status():
+        def __init__(self, json):
+            self.status=json["result"]
+
+    url_data = json.load(urllib2.urlopen("http://"+ i + "/status"))
+    foo = Status (url_data)
+    block_height =  foo.status['latest_block_height']
+
+    if last_run <= block_height:
+        start = last_run 
+    else:
+        start = block_height
     end = block_height + 1
     url_block = []
     url_validators = []
@@ -127,6 +145,7 @@ def scan(i):
         validators_height = ("http://"+ i + "/validators?height=" + str(number))
         url_block.append(block)
         url_validators.append(validators_height)
+ 
 
     # count block validators
     total_blocks = len(url_block)
@@ -176,8 +195,8 @@ def scan(i):
         uptime = (actual * 100) / expected
         print(key +" "+ str(uptime) + '%')
 
-    
 
+   
 # Global loop for list of urls
 for i in url:
     site_running(i)
@@ -188,7 +207,17 @@ for i in url:
     print '\n'
 
 
+# Run scan function in regular intervals
+while(True):
+    for i in url: 
+            scan(i)
+            print '\n'
+    time.sleep(30)
 
+
+
+
+    
 
         
 
