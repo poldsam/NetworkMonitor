@@ -109,19 +109,28 @@ def dump_consensus(i):
             pass
 
 
-# Scan all blocks
-# saved in db
-last_run = 12460
 
+# saved in db
+last_run = 13748
+
+# Scan all blocks
 def scan(i):
     #create classes
     class Block():
         def __init__(self, json):
             self.block=json["result"]["block"]["last_commit"]["precommits"]
 
+    class BlockHeight():
+        def __init__(self, json):
+            self.blockheight=json["result"]["block"]["header"]
+
+    class Validators():
+        def __init__(self, json):
+            self.validators=json["result"]["validators"]
+
     class ValidatorsHeight():
         def __init__(self, json):
-            self.validatorsheigh=json["result"]["validators"]
+            self.validatorsheight=json["result"]
 
     # block heigh for interval loop
     class Status():
@@ -139,6 +148,7 @@ def scan(i):
     end = block_height + 1
     url_block = []
     url_validators = []
+    
 
     for number in range (start, end):
         block = ("http://"+ i + "/block?height=" + str(number))
@@ -148,16 +158,21 @@ def scan(i):
  
 
     # count block validators
+    print colored ("Scanning all blocks...", 'green')
     total_blocks = len(url_block)
     blockcount = dict()
-    print colored ("Scanning all blocks...", 'green')
+    block_validators_list = dict()
     for i in url_block:
         url_data = json.load(urllib2.urlopen(i))
-        foo = Block (url_data)
+        foo = Block (url_data) 
+        header = BlockHeight (url_data)
+        block_height_at = header.blockheight['height']
+        block_validators = []
         # print("Got " + i)
         for k in foo.block:
                 try:
                     if k['validator_address']:
+                        block_validators.append(k['validator_address'])
                         if k['validator_address'] not in blockcount:
                             blockcount[k['validator_address']] = 1
                         else:
@@ -165,28 +180,42 @@ def scan(i):
                 except:
                     pass
 
+        block_validators_list[block_height_at] = block_validators
+
+    # print block_validators
+    # print block_validators_list
+        
     # % of blocks validator participated in out of all blocks committed
     for key, value in blockcount.items():
         participation = (value * 100) / total_blocks
         print(key +" "+ str(participation) + '%')
 
-
     # count validators at block height 
     print colored ("Calculating uptime...", 'green')
     validatorscount = dict()
+    validator_validators_list = dict()
     for i in url_validators:
         url_data = json.load(urllib2.urlopen(i))
-        foo = ValidatorsHeight (url_data)
+        foo = Validators (url_data)
+        height = ValidatorsHeight (url_data)
+        validators_block_height_at = height.validatorsheight['block_height']
+        validator_validators = [] 
         # print("Got " + i)
-        for k in foo.validatorsheigh:
+        for k in foo.validators:
             try:
                 if k['address']:
+                    validator_validators.append(k['address'])
                     if k['address'] not in validatorscount:
                         validatorscount[k['address']] = 1
                     else:
                         validatorscount[k['address']] += 1  
             except:
                 pass
+
+        validator_validators_list[validators_block_height_at] = validator_validators
+
+        # print validator_validators 
+        # print validator_validators_list
 
     # calculate uptime for each validator 
     for key in blockcount:
@@ -196,14 +225,26 @@ def scan(i):
         print(key +" "+ str(uptime) + '%')
 
 
-   
+    # alert if block not signed by validator
+    delta = {}
+    for key in block_validators_list:
+        delta[key] = list(set(block_validators_list[key]) - set(validator_validators_list.get(key, [])))
+
+    for key, value in delta.items():
+        if value != []:
+            print str(value) + " has not signed" + str(key)
+        else:
+            pass
+
+
+        
 # Global loop for list of urls
 for i in url:
     site_running(i)
     status(i)
     net_info(i)
     dump_consensus(i)
-    scan(i)
+    # scan(i)
     print '\n'
 
 
@@ -212,7 +253,7 @@ while(True):
     for i in url: 
             scan(i)
             print '\n'
-    time.sleep(30)
+    time.sleep(120)
 
 
 
