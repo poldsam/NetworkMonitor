@@ -7,7 +7,8 @@ from termcolor import colored
 
 
 url = [
-    "35.204.86.158:46657",
+    "35.184.206.51:46657",
+    "35.224.148.135:46657"
 ]
 
 
@@ -23,6 +24,7 @@ def site_running(i):
         print colored("Cannot reach " + i, 'red')
         pass
     conn.close()
+
 
 
 # Check if block time is under 2min
@@ -42,15 +44,15 @@ def status(i):
     if block_time < datetime.utcnow() -timedelta(seconds=120):
         print colored("Late block - public consensus error! Delay " + str(delta), 'red')
         # print colored("Late block - public consensus error!",'red')
-        print colored("Lastest block time (utc) - " + str(block_time), 'green')
+        print colored("Latest block time (utc) - " + str(block_time), 'green')
         print colored("Latest block height - " + str(block_height), 'green')
     else:
         print colored("Consensus - OK", 'green')
         print colored("Lastest block time (utc) - " + str(block_time), 'green')
         print colored("Latest block height - " + str(block_height), 'green')
-
-
      
+
+
 # Check if sufficient # of nodes are available
 def net_info(i):
     global node_ip
@@ -61,7 +63,9 @@ def net_info(i):
 
     url_data = json.load(urllib2.urlopen("http://"+ i + "/net_info"))
     foo = Info (url_data)
-    if len(foo.info) < 5:
+    if len(foo.info) == 1:
+        print colored("Insufficient nodes - under 5 nodes available!  Current count " + str(len(foo.info)) + " node", 'red')
+    if 1 < len(foo.info) < 5:
         print colored("Insufficient nodes - under 5 nodes available!  Current count " + str(len(foo.info)) + " nodes", 'red')
     else:
         print colored("Current number of nodes - " + str(len(foo.info)), 'green')
@@ -73,7 +77,7 @@ def net_info(i):
 
 
 
-# Check if all block heighs are in sync
+# Check if all block heights are in sync
 def dump_consensus(i):
     #create class
     class Dump():
@@ -81,32 +85,53 @@ def dump_consensus(i):
             self.dump=json["result"]["peer_round_states"]
 
     url_data = json.load(urllib2.urlopen("http://"+ i + "/dump_consensus_state"))
+
+    #get peer round states to check what validators think the block heigh should be
     state = Dump (url_data)
     for k in node_ip:
-        # print state.dump[k]['Height']
-        if state.dump[k]['Height'] != block_height+1:
-            print colored("Block height different - " + k + ' ' + "(height " + str(state.dump[k]['Height'])+ ")", 'red')
-        else:
+        try:
+            # compare peer round states to actual block height for consensus
+            if state.dump[k]['Height'] != block_height+1:
+                print colored("Block height different - " + k + ' ' + "(height " + str(state.dump[k]['Height'])+ ")", 'red')
+            else:
+                pass
+        except:
             pass
+        try:
+            if state.dump["891023d33e161bafff356b74ea44730d295342b9"]['Height'] != block_height+1:
+                print colored("Block height different - " + ' ' + "(height " + str(state.dump["891023d33e161bafff356b74ea44730d295342b9"]['Height'])+ ")", 'red')
+            else:
+                pass
+        except:
+            pass
+
 
 # Scan all blocks
 def scan(i):
-    #create class
+    #create classes
     class Block():
         def __init__(self, json):
             self.block=json["result"]["block"]["last_commit"]["precommits"]
 
-    start = block_height - 50
+    class ValidatorsHeight():
+        def __init__(self, json):
+            self.validatorsheigh=json["result"]["validators"]
+
+    start = block_height - 5
     end = block_height + 1
     url_block = []
+    url_validators = []
 
     for number in range (start, end):
         block = ("http://"+ i + "/block?height=" + str(number))
+        validators_height = ("http://"+ i + "/validators?height=" + str(number))
         url_block.append(block)
+        url_validators.append(validators_height)
 
+    # count block validators
     total_blocks = len(url_block)
-    counts = dict()
-    print ("Scanning all blocks...")
+    blockcount = dict()
+    print colored ("Scanning all blocks...", 'green')
     for i in url_block:
         url_data = json.load(urllib2.urlopen(i))
         foo = Block (url_data)
@@ -114,29 +139,55 @@ def scan(i):
         for k in foo.block:
                 try:
                     if k['validator_address']:
-                        if k['validator_address'] not in counts:
-                            counts[k['validator_address']] = 1
+                        if k['validator_address'] not in blockcount:
+                            blockcount[k['validator_address']] = 1
                         else:
-                            counts[k['validator_address']] += 1
+                            blockcount[k['validator_address']] += 1
                 except:
                     pass
-    for key, value in counts.items():
+
+    # % of blocks validator participated in out of all blocks committed
+    for key, value in blockcount.items():
         participation = (value * 100) / total_blocks
         print(key +" "+ str(participation) + '%')
 
 
+    # count validators at block height 
+    print colored ("Calculating uptime...", 'green')
+    validatorscount = dict()
+    for i in url_validators:
+        url_data = json.load(urllib2.urlopen(i))
+        foo = ValidatorsHeight (url_data)
+        # print("Got " + i)
+        for k in foo.validatorsheigh:
+            try:
+                if k['address']:
+                    if k['address'] not in validatorscount:
+                        validatorscount[k['address']] = 1
+                    else:
+                        validatorscount[k['address']] += 1  
+            except:
+                pass
 
-#Global loop for url list
+    # calculate uptime for each validator 
+    for key in blockcount:
+        expected = validatorscount[key]
+        actual = blockcount[key]
+        uptime = (actual * 100) / expected
+        print(key +" "+ str(uptime) + '%')
+
+    
+
+# Global loop for list of urls
 for i in url:
-    try:
-        site_running(i)
-        status(i)
-        net_info(i)
-        dump_consensus(i)
-        scan(i)
-        print '\n'
-    except:
-        pass
+    site_running(i)
+    status(i)
+    net_info(i)
+    dump_consensus(i)
+    scan(i)
+    print '\n'
+
+
 
 
         
