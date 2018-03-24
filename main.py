@@ -111,7 +111,7 @@ def dump_consensus(i):
 
 
 # saved in db
-last_run = 15242
+last_run = 15304
 
 # Scan all blocks
 def scan(i):
@@ -237,15 +237,17 @@ def scan(i):
             pass
 
 
-    # alert if over three blocks not signed by validator
+    # alert for three consecutive blocks not signed by validator
     for n in block_validators:
         if any (n in val for val in delta.values()):
+            # get the keys with missing values
             keys = [key for key, value in delta.items() if n in value]
-            # print len(keys)
-            if len(keys) > 3:
-                print colored(n + " has missed more than three blocks ", 'red')
-                print colored(keys, 'red')
-
+            # check if 3 entries are consecutive
+            subs = [keys[i:i+3] for i in range(len(keys)) if len(keys[i:i+3]) == 3]
+            if len(subs) > 2:
+                print colored(n + " has missed three consecutive blocks ", 'red')
+                print subs[0]
+                print "Total blocks missed " + str(keys)
 
 
 # Global loop for list of urls
