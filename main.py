@@ -111,7 +111,7 @@ def dump_consensus(i):
 
 
 # saved in db
-last_run = 13748
+last_run = 15145
 
 # Scan all blocks
 def scan(i):
@@ -232,7 +232,7 @@ def scan(i):
 
     for key, value in delta.items():
         if value != []:
-            print str(value) + " has not signed" + str(key)
+            print colored(str(value) + " has not signed block " + str(key), 'red')
         else:
             pass
 
@@ -244,7 +244,7 @@ for i in url:
     status(i)
     net_info(i)
     dump_consensus(i)
-    # scan(i)
+    scan(i)
     print '\n'
 
 
