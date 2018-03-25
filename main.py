@@ -111,7 +111,8 @@ def dump_consensus(i):
 
 
 # saved in db
-last_run = 15304
+last_run = 16399
+
 
 # Scan all blocks
 def scan(i):
@@ -132,7 +133,7 @@ def scan(i):
         def __init__(self, json):
             self.validatorsheight=json["result"]
 
-    # block heigh for interval loop
+    # get block heigh for interval loop
     class Status():
         def __init__(self, json):
             self.status=json["result"]
@@ -182,15 +183,13 @@ def scan(i):
 
         block_validators_list[block_height_at] = block_validators
 
-    # print block_validators
-    # print block_validators_list
         
-    # % of blocks validator participated in out of all blocks committed
+    # get % of blocks validator participated in out of all blocks committed
     for key, value in blockcount.items():
         participation = (value * 100) / total_blocks
         print(key +" "+ str(participation) + '%')
 
-    # count validators at block height 
+    # count validator validators 
     print colored ("Calculating uptime...", 'green')
     validatorscount = dict()
     validator_validators_list = dict()
@@ -214,8 +213,6 @@ def scan(i):
 
         validator_validators_list[validators_block_height_at] = validator_validators
 
-        # print validator_validators 
-        # print validator_validators_list
 
     # calculate uptime for each validator 
     for key in blockcount:
@@ -224,24 +221,26 @@ def scan(i):
         uptime = (actual * 100) / expected
         print(key +" "+ str(uptime) + '%')
 
-
-    # alert if block not signed by validator
+    
+    # get difference btw expected validators and actual block validators 
     delta = {}
     for key in block_validators_list:
-        delta[key] = list(set(block_validators_list[key]) - set(validator_validators_list.get(key, [])))
+        delta[key] = list(set(validator_validators_list[key]) - set(block_validators_list.get(key, [])))
 
+
+    # alert if block not signed by all validators
     for key, value in delta.items():
         if value != []:
-            print colored(str(value) + " has not signed block " + str(key), 'red')
+            print colored(str(value) + " did not sign block " + str(key), 'red')
         else:
             pass
 
 
-    # alert for three consecutive blocks not signed by validator
-    for n in block_validators:
+    # alert if three consecutive blocks not signed by validator
+    for n in validator_validators:
         if any (n in val for val in delta.values()):
             # get the keys with missing values
-            keys = [key for key, value in delta.items() if n in value]
+            keys = [key for key, value in delta.items() if n not in value]
             # check if 3 entries are consecutive
             subs = [keys[i:i+3] for i in range(len(keys)) if len(keys[i:i+3]) == 3]
             if len(subs) > 2:
