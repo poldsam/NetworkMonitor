@@ -111,7 +111,7 @@ def dump_consensus(i):
 
 
 # saved in db
-last_run = 16889
+last_run = 16908
 
 
 # Scan all blocks
@@ -125,9 +125,6 @@ def scan(i):
         def __init__(self, json):
             self.blockheight=json["result"]["block"]["header"]
 
-    class Validators():
-        def __init__(self, json):
-            self.validators=json["result"]["validators"]
 
     class ValidatorsHeight():
         def __init__(self, json):
@@ -192,12 +189,11 @@ def scan(i):
     validator_validators_list = dict()
     for i in url_validators:
         url_data = json.load(urllib2.urlopen(i))
-        foo = Validators (url_data)
-        height = ValidatorsHeight (url_data)
-        validators_block_height_at = height.validatorsheight['block_height']
+        foo = ValidatorsHeight (url_data)
+        validators_block_height_at = foo.validatorsheight['block_height']
         validator_validators = [] 
         # print("Got " + i)
-        for k in foo.validators:
+        for k in foo.validatorsheight['validators']:
             try:
                 if k['address']:
                     validator_validators.append(k['address'])
