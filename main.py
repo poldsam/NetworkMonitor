@@ -111,7 +111,7 @@ def dump_consensus(i):
 
 
 # saved in db
-last_run = 16887
+last_run = 16889
 
 
 # Scan all blocks
@@ -134,22 +134,27 @@ def scan(i):
             self.validatorsheight=json["result"]
 
 
-    if last_run <= block_height:
-        start = last_run 
-    else:
-        start = block_height
-    end = block_height + 1
-    url_block = []
-    url_validators = []
-    
+    def get_height_urls():
+        global url_block, url_validators 
 
-    for number in range (start, end):
-        block = ("http://"+ i + "/block?height=" + str(number))
-        validators_height = ("http://"+ i + "/validators?height=" + str(number))
-        url_block.append(block)
-        url_validators.append(validators_height)
+        if last_run <= block_height:
+            start = last_run 
+        else:
+            start = block_height
+        end = block_height + 1
+        url_block = []
+        url_validators = []
+        
+
+        for number in range (start, end):
+            block = ("http://"+ i + "/block?height=" + str(number))
+            validators_height = ("http://"+ i + "/validators?height=" + str(number))
+            url_block.append(block)
+            url_validators.append(validators_height)
  
+    get_height_urls()
 
+    
     # count block validators
     print colored ("Scanning all blocks...", 'green')
     total_blocks = len(url_block)
