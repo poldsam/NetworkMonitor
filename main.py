@@ -111,7 +111,7 @@ def dump_consensus(i):
 
 
 # saved in db
-last_run = 16399
+last_run = 16887
 
 
 # Scan all blocks
@@ -133,14 +133,6 @@ def scan(i):
         def __init__(self, json):
             self.validatorsheight=json["result"]
 
-    # get block heigh for interval loop
-    class Status():
-        def __init__(self, json):
-            self.status=json["result"]
-
-    url_data = json.load(urllib2.urlopen("http://"+ i + "/status"))
-    foo = Status (url_data)
-    block_height =  foo.status['latest_block_height']
 
     if last_run <= block_height:
         start = last_run 
