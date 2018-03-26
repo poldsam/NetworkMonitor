@@ -8,7 +8,6 @@ import time
 
 
 
-
 url = [
     "35.184.206.51:46657",
     "35.224.148.135:46657"
@@ -29,10 +28,10 @@ def site_running(i):
     conn.close()
 
 
-
 # Check if block time is under 2min
 def status(i):
-    global block_height 
+    global block_height
+
     # create class
     class Status():
         def __init__(self, json):
@@ -55,10 +54,10 @@ def status(i):
         print colored("Latest block height - " + str(block_height), 'green')
      
 
-
 # Check if sufficient # of nodes are available
 def net_info(i):
     global node_ip
+
     # create class
     class Info():
         def __init__(self, json):
@@ -113,7 +112,6 @@ def dump_consensus(i):
 # saved in db
 last_run = 17838
 
-
 # Scan all blocks
 def scan(i):
     #create classes
@@ -145,8 +143,8 @@ def scan(i):
     get_height_urls()
 
     
-    # get block validators
-    def get_block_validators():
+    # get validators at block height
+    def get_blockheight_validators():
         print colored ("Scanning all blocks...", 'green')
         global block_validators, block_validators_list, blockcount, total_blocks 
 
@@ -170,74 +168,87 @@ def scan(i):
                     except:
                         pass
             block_validators_list[block_height_at] = block_validators 
-    get_block_validators()
+    get_blockheight_validators()
 
         
     # get % of blocks validators participated in out of all blocks committed
-    for key, value in blockcount.items():
-        participation = (value * 100) / total_blocks
-        print(key +" "+ str(participation) + '%')
+    def participation():
+        global participation
 
-    # count validator validators 
-    print colored ("Calculating uptime...", 'green')
-    validatorscount = dict()
-    validator_validators_list = dict()
-    for i in url_validators:
-        url_data = json.load(urllib2.urlopen(i))
-        foo = ValidatorsHeight (url_data)
-        validators_block_height_at = foo.validatorsheight['block_height']
-        validator_validators = [] 
-        # print("Got " + i)
-        for k in foo.validatorsheight['validators']:
-            try:
-                if k['address']:
-                    validator_validators.append(k['address'])
-                    if k['address'] not in validatorscount:
-                        validatorscount[k['address']] = 1
-                    else:
-                        validatorscount[k['address']] += 1  
-            except:
-                pass
+        for key, value in blockcount.items():
+            participation = (value * 100) / total_blocks
+            print(key +" "+ str(participation) + '%')
+    participation()
 
-        validator_validators_list[validators_block_height_at] = validator_validators
+
+    # get validators at validators height
+    def get_validatorsheight_validators():
+        print colored ("Calculating uptime...", 'green')
+        global validator_validators, validator_validators_list, validatorscount
+
+        validatorscount = dict()
+        validator_validators_list = dict()
+        for i in url_validators:
+            url_data = json.load(urllib2.urlopen(i))
+            foo = ValidatorsHeight (url_data)
+            validators_block_height_at = foo.validatorsheight['block_height']
+            validator_validators = [] 
+            # print("Got " + i)
+            for k in foo.validatorsheight['validators']:
+                try:
+                    if k['address']:
+                        validator_validators.append(k['address'])
+                        if k['address'] not in validatorscount:
+                            validatorscount[k['address']] = 1
+                        else:
+                            validatorscount[k['address']] += 1  
+                except:
+                    pass
+            validator_validators_list[validators_block_height_at] = validator_validators
+    get_validatorsheight_validators()
 
 
     # calculate uptime for each validator 
-    for key in blockcount:
-        expected = validatorscount[key]
-        actual = blockcount[key]
-        uptime = (actual * 100) / expected
-        print(key +" "+ str(uptime) + '%')
-
+    def uptime():
+        global uptime
+        for key in blockcount:
+            expected = validatorscount[key]
+            actual = blockcount[key]
+            uptime = (actual * 100) / expected
+            print(key +" "+ str(uptime) + '%')
+    uptime()
     
-    # get difference btw expected validators and actual block validators 
-    delta = {}
-    for key in block_validators_list:
-        delta[key] = list(set(validator_validators_list[key]) - set(block_validators_list.get(key, [])))
+
+    # get unsigned consecutive blocks
+    def consecutive_blocks():
+        global subs 
+        # difference between expected and actual block validators 
+        delta = {}
+        for key in block_validators_list:
+            delta[key] = list(set(validator_validators_list[key]) - set(block_validators_list.get(key, [])))
+
+        # alert if block not signed by all validators
+        # for key, value in delta.items():
+        #     if value != []:
+        #         print colored(str(value) + " did not sign block " + str(key), 'red')
+        #     else:
+        #         pass
+
+        # get three consecutive blocks not signed by validator
+        for n in validator_validators:
+            if any (n in val for val in delta.values()):
+                # get keys with missing values
+                keys = [key for key, value in delta.items() if n in value]
+                # check if 3 entries are consecutive
+                subs = [keys[i:i+3] for i in range(len(keys)) if len(keys[i:i+3]) == 3]
+                if len(subs) > 2:
+                    print colored(n + " has missed three consecutive blocks ", 'red')
+                    print subs[0]
+                    print "Total blocks missed " + str(keys)
+    consecutive_blocks()
 
 
-    # alert if block not signed by all validators
-    for key, value in delta.items():
-        if value != []:
-            print colored(str(value) + " did not sign block " + str(key), 'red')
-        else:
-            pass
-
-
-    # alert if three consecutive blocks not signed by validator
-    for n in validator_validators:
-        if any (n in val for val in delta.values()):
-            # get the keys with missing values
-            keys = [key for key, value in delta.items() if n not in value]
-            # check if 3 entries are consecutive
-            subs = [keys[i:i+3] for i in range(len(keys)) if len(keys[i:i+3]) == 3]
-            if len(subs) > 2:
-                print colored(n + " has missed three consecutive blocks ", 'red')
-                print subs[0]
-                print "Total blocks missed " + str(keys)
-
-
-# Global loop for list of urls
+# Global loop for url list
 for i in url:
     site_running(i)
     status(i)
@@ -247,7 +258,7 @@ for i in url:
     print '\n'
 
 
-# Run scan function in regular intervals
+# Running scan() in intervals
 while(True):
     for i in url: 
             scan(i)
