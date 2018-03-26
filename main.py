@@ -110,7 +110,7 @@ def dump_consensus(i):
 
 
 # saved in db
-last_run = 17838
+last_run = 18017
 
 # Scan all blocks
 def scan(i):
@@ -259,17 +259,37 @@ for i in url:
 
 
 # Running scan() in intervals
-while(True):
-    for i in url: 
-            scan(i)
-            print '\n'
-    time.sleep(120)
+# while(True):
+#     for i in url: 
+#             scan(i)
+#             print '\n'
+#     time.sleep(120)
 
 
 
 
+# Validator specific
+class Validator:
+
+    def __init__(self, address, block_count):
+        self.address = address
+        self.block_count = block_count
+
+
+    def participation(self):
+        address = self.address
+        participation = (self.block_count * 100) / total_blocks 
+
+        return{
+        'address' : address,
+        'participation': str(participation) + '%'
+        } 
     
 
+val_1 = Validator('0B9128A9CD140383A830AA516F4BE9D53CB624FA', total_blocks)
+val_2 = Validator('41C0EBAACFF0B981A299AB36ABCA5083B928599A', total_blocks)
+
+print (val_1.participation())
         
 
 
