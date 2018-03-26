@@ -13,7 +13,7 @@ url = [
     "35.224.148.135:46657"
 ]
 
-
+# High level monitoring
 # Monitor that site is up and running
 def site_running(i):
     conn = httplib.HTTPConnection(i, timeout=10)
@@ -110,7 +110,7 @@ def dump_consensus(i):
 
 
 # saved in db
-last_run = 18017
+last_run = 18089
 
 # Scan all blocks
 def scan(i):
@@ -184,8 +184,9 @@ def scan(i):
     # get validators at validators height
     def get_validatorsheight_validators():
         print colored ("Calculating uptime...", 'green')
-        global validator_validators, validator_validators_list, validatorscount
+        global validator_validators, validator_validators_list, validatorscount, total_val_blocks
 
+        total_val_blocks = len(url_validators)
         validatorscount = dict()
         validator_validators_list = dict()
         for i in url_validators:
@@ -268,28 +269,31 @@ for i in url:
 
 
 
-# Validator specific
+# Validator specific monitoring
 class Validator:
 
-    def __init__(self, address, block_count):
+    def __init__(self, address, block_count, val_block_count):
         self.address = address
         self.block_count = block_count
+        self.val_block_count = val_block_count
 
 
-    def participation(self):
+    def val_data(self):
         address = self.address
         participation = (self.block_count * 100) / total_blocks 
+        uptime = (self.block_count * 100) / self.val_block_count
 
         return{
         'address' : address,
-        'participation': str(participation) + '%'
+        'participation': str(participation) + '%',
+        'uptime': str(uptime) + '%'
         } 
     
 
-val_1 = Validator('0B9128A9CD140383A830AA516F4BE9D53CB624FA', total_blocks)
-val_2 = Validator('41C0EBAACFF0B981A299AB36ABCA5083B928599A', total_blocks)
+val_1 = Validator('0B9128A9CD140383A830AA516F4BE9D53CB624FA', total_blocks, total_val_blocks)
+val_2 = Validator('41C0EBAACFF0B981A299AB36ABCA5083B928599A', total_blocks, total_val_blocks)
 
-print (val_1.participation())
+print (val_1.val_data())
         
 
 
