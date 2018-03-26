@@ -111,20 +111,15 @@ def dump_consensus(i):
 
 
 # saved in db
-last_run = 16908
+last_run = 17838
 
 
 # Scan all blocks
 def scan(i):
     #create classes
-    class Block():
-        def __init__(self, json):
-            self.block=json["result"]["block"]["last_commit"]["precommits"]
-
     class BlockHeight():
         def __init__(self, json):
-            self.blockheight=json["result"]["block"]["header"]
-
+            self.blockheight=json["result"]["block"]
 
     class ValidatorsHeight():
         def __init__(self, json):
@@ -142,43 +137,43 @@ def scan(i):
         url_block = []
         url_validators = []
         
-
         for number in range (start, end):
             block = ("http://"+ i + "/block?height=" + str(number))
             validators_height = ("http://"+ i + "/validators?height=" + str(number))
             url_block.append(block)
             url_validators.append(validators_height)
- 
     get_height_urls()
 
     
-    # count block validators
-    print colored ("Scanning all blocks...", 'green')
-    total_blocks = len(url_block)
-    blockcount = dict()
-    block_validators_list = dict()
-    for i in url_block:
-        url_data = json.load(urllib2.urlopen(i))
-        foo = Block (url_data) 
-        header = BlockHeight (url_data)
-        block_height_at = header.blockheight['height']
-        block_validators = []
-        # print("Got " + i)
-        for k in foo.block:
-                try:
-                    if k['validator_address']:
-                        block_validators.append(k['validator_address'])
-                        if k['validator_address'] not in blockcount:
-                            blockcount[k['validator_address']] = 1
-                        else:
-                            blockcount[k['validator_address']] += 1
-                except:
-                    pass
+    # get block validators
+    def get_block_validators():
+        print colored ("Scanning all blocks...", 'green')
+        global block_validators, block_validators_list, blockcount, total_blocks 
 
-        block_validators_list[block_height_at] = block_validators
+        total_blocks = len(url_block)
+        blockcount = dict()
+        block_validators_list = dict()
+        for i in url_block:
+            url_data = json.load(urllib2.urlopen(i))
+            foo = BlockHeight (url_data)
+            block_height_at = foo.blockheight['header']['height']
+            block_validators = []
+            # print("Got " + i)
+            for k in foo.blockheight["last_commit"]["precommits"]:
+                    try:
+                        if k['validator_address']:
+                            block_validators.append(k['validator_address'])
+                            if k['validator_address'] not in blockcount:
+                                blockcount[k['validator_address']] = 1
+                            else:
+                                blockcount[k['validator_address']] += 1
+                    except:
+                        pass
+            block_validators_list[block_height_at] = block_validators 
+    get_block_validators()
 
         
-    # get % of blocks validator participated in out of all blocks committed
+    # get % of blocks validators participated in out of all blocks committed
     for key, value in blockcount.items():
         participation = (value * 100) / total_blocks
         print(key +" "+ str(participation) + '%')
