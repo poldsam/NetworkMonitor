@@ -13,6 +13,7 @@ url = [
     "35.224.148.135:46657"
 ]
 
+
 # Monitor that site is up and running
 def site_running(i):
     conn = httplib.HTTPConnection(i, timeout=10)
@@ -26,9 +27,8 @@ def site_running(i):
         pass
     conn.close()
 
-   
-for i in url:
 
+for i in url:
     class Status:
 
         url_suffix = "/status"
@@ -62,7 +62,7 @@ for i in url:
             return block_height 
 
     status = Status(i)
-    print(status.get_block_height())
+    status.get_block_height()
 
     class Net_Info(Status):
 
@@ -107,6 +107,7 @@ for i in url:
     net_info.get_node_count()
     net_info.get_node_ip()
 
+
     # Check if all block heights are in sync
     class Dump_Consensus(Net_Info):
 
@@ -150,7 +151,7 @@ for i in url:
 
     class Url_Block:
 
-        last_run = 19658
+        last_run = 20616
         url_suffix = "/block?height="
 
         def __init__ (self, url, block_height):
@@ -219,9 +220,8 @@ for i in url:
                     self.blockheight=json["result"]["block"]
 
             total_blocks = len(self.url_block)
-            print total_blocks 
+            # print total_blocks 
             blockcount = dict()
-            # block_validators_list = dict()
             for i in self.url_block:
                 url_data = json.load(urllib2.urlopen(i))
                 block = BlockHeight (url_data)
@@ -236,144 +236,154 @@ for i in url:
                         except:
                             pass
 
-                return blockcount 
-
-    blockcount = Blockcount(i, url_block.get_block_urls())
-    blockcount.get_blockcount()
-
-
-
-
-# NO METHODS ADDED YET BELOW
-
-
-# Scan all blocks
-def scan(i):
-    #create classes
-    class BlockHeight():
-        def __init__(self, json):
-            self.blockheight=json["result"]["block"]
-
-    class ValidatorsHeight():
-        def __init__(self, json):
-            self.validatorsheight=json["result"]
-
+            self.participation(blockcount)
+            return blockcount 
 
         # get validators at block height
-        def get_blockheight_validators():
-            print colored ("Scanning all blocks...", 'green')
-            global block_validators, block_validators_list, blockcount, total_blocks 
+        def get_block_validators(self):
+            #create classes
+            class BlockHeight():
+                def __init__(self, json):
+                    self.blockheight=json["result"]["block"]
 
-            total_blocks = len(url_block)
-            blockcount = dict()
+            total_blocks = len(self.url_block)
             block_validators_list = dict()
-            for i in url_block:
+            for i in self.url_block:
                 url_data = json.load(urllib2.urlopen(i))
-                foo = BlockHeight (url_data)
-                block_height_at = foo.blockheight['header']['height']
+                block = BlockHeight (url_data)
+                block_height_at = block.blockheight['header']['height']
                 block_validators = []
                 # print("Got " + i)
-                for k in foo.blockheight["last_commit"]["precommits"]:
+                for k in block.blockheight["last_commit"]["precommits"]:
                         try:
                             if k['validator_address']:
                                 block_validators.append(k['validator_address'])
-                                if k['validator_address'] not in blockcount:
-                                    blockcount[k['validator_address']] = 1
-                                else:
-                                    blockcount[k['validator_address']] += 1
                         except:
                             pass
-                block_validators_list[block_height_at] = block_validators 
-        get_blockheight_validators()
+
+                block_validators_list[block_height_at] = block_validators
+            return block_validators_list
+                                
+
+        def participation(self, blockcount):
+
+            for key, value in blockcount.items():
+                participation = (value * 100) / len(self.url_block)
+                print(key +" "+ str(participation) + '%')
+
+    blockcount = Blockcount(i, url_block.get_block_urls())
+    blockcount.get_blockcount()
+    blockcount.get_block_validators()
+
+
+    class Validatorscount:
+
+        def __init__(self, url, url_validators, blockcount, block_validators_list):
+            self.url = url
+            self.url_validators = url_validators 
+            self.blockcount = blockcount
+            self.block_validators_list = block_validators_list
+
+
+        # get validators at validators height
+        def get_validatorscount(self):
     
+            #create classes
+            class ValidatorsHeight():
+                def __init__(self, json):
+                    self.validatorsheight=json["result"]
 
-  
-    # get % of blocks validators participated in out of all blocks committed
-    def participation():
-        global participation
+            print colored ("Calculating uptime...", 'green')
 
-        for key, value in blockcount.items():
-            participation = (value * 100) / total_blocks
-            print(key +" "+ str(participation) + '%')
-    participation()
+            total_val_blocks = len(self.url_validators)
+            validatorscount = dict()
+            # validator_validators_list = dict()
+            for i in self.url_validators:
+                url_data = json.load(urllib2.urlopen(i))
+                result = ValidatorsHeight (url_data) 
+                # print("Got " + i)
+                for k in result.validatorsheight['validators']:
+                    try:
+                        if k['address']:
+                            if k['address'] not in validatorscount:
+                                validatorscount[k['address']] = 1
+                            else:
+                                validatorscount[k['address']] += 1  
+                    except:
+                        pass
+
+            self.uptime(validatorscount)
+            return validatorscount 
+
+        # get validators at validators height
+        def get_validators_validators(self):
+            #create classes
+            class ValidatorsHeight():
+                def __init__(self, json):
+                    self.validatorsheight=json["result"]
+
+            total_val_blocks = len(self.url_validators)
+            validator_validators_list = dict()
+            for i in self.url_validators:
+                url_data = json.load(urllib2.urlopen(i))
+                result = ValidatorsHeight (url_data)
+                validators_block_height_at = result.validatorsheight['block_height']
+                validator_validators = [] 
+                # print("Got " + i)
+                for k in result.validatorsheight['validators']:
+                    try:
+                        if k['address']:
+                            validator_validators.append(k['address']) 
+                    except:
+                        pass
+                validator_validators_list[validators_block_height_at] = validator_validators
+
+            self.consecutive_blocks(validator_validators_list, validator_validators)
+            return validator_validators_list, validator_validators 
 
 
-    # get validators at validators height
-    def get_validatorsheight_validators():
-        print colored ("Calculating uptime...", 'green')
-        global validator_validators, validator_validators_list, validatorscount, total_val_blocks
+        # calculate uptime for each validator 
+        def uptime(self, validatorscount):
+            # print self.blockcount
+            for key in self.blockcount:
+                expected = validatorscount[key]
+                actual = self.blockcount[key]
+                uptime = (actual * 100) / expected
+                print(key +" "+ str(uptime) + '%')
+   
 
-        total_val_blocks = len(url_validators)
-        validatorscount = dict()
-        validator_validators_list = dict()
-        for i in url_validators:
-            url_data = json.load(urllib2.urlopen(i))
-            foo = ValidatorsHeight (url_data)
-            validators_block_height_at = foo.validatorsheight['block_height']
-            validator_validators = [] 
-            # print("Got " + i)
-            for k in foo.validatorsheight['validators']:
-                try:
-                    if k['address']:
-                        validator_validators.append(k['address'])
-                        if k['address'] not in validatorscount:
-                            validatorscount[k['address']] = 1
-                        else:
-                            validatorscount[k['address']] += 1  
-                except:
-                    pass
-            validator_validators_list[validators_block_height_at] = validator_validators
-    get_validatorsheight_validators()
+        def consecutive_blocks(self, validator_validators_list, validator_validators):
+        # difference between expected and actual block validators by block 
+            delta = {}
+            for key in self.block_validators_list:
+                delta[key] = list(set(validator_validators_list[key]) - set(self.block_validators_list.get(key, [])))
+
+            for n in validator_validators:
+                if any (n in val for val in delta.values()):
+                    # get keys with missing values
+                    keys = [key for key, value in delta.items() if n in value]
+                    # check if 3 entries are consecutive
+                    subs = [keys[i:i+3] for i in range(len(keys)) if len(keys[i:i+3]) == 3]
+                    if len(subs) > 2:
+                        print colored(n + " has missed three consecutive blocks ", 'red')
+                        print subs[0]
+                        print "Total blocks missed " + str(keys)
 
 
-    # calculate uptime for each validator 
-    def uptime():
-        global uptime
-        for key in blockcount:
-            expected = validatorscount[key]
-            actual = blockcount[key]
-            uptime = (actual * 100) / expected
-            print(key +" "+ str(uptime) + '%')
-    uptime()
+    validatorscount = Validatorscount(i, url_validators.get_validators_urls(), blockcount.get_blockcount(), blockcount.get_block_validators())
+    validatorscount.get_validatorscount()
+    validatorscount.get_validators_validators()
+
     
-
-    # get unsigned consecutive blocks
-    def consecutive_blocks():
-        global subs 
-        # difference between expected and actual block validators 
-        delta = {}
-        for key in block_validators_list:
-            delta[key] = list(set(validator_validators_list[key]) - set(block_validators_list.get(key, [])))
-
-        # alert if block not signed by all validators
-        # for key, value in delta.items():
-        #     if value != []:
-        #         print colored(str(value) + " did not sign block " + str(key), 'red')
-        #     else:
-        #         pass
-
-        # get three consecutive blocks not signed by validator
-        for n in validator_validators:
-            if any (n in val for val in delta.values()):
-                # get keys with missing values
-                keys = [key for key, value in delta.items() if n in value]
-                # check if 3 entries are consecutive
-                subs = [keys[i:i+3] for i in range(len(keys)) if len(keys[i:i+3]) == 3]
-                if len(subs) > 2:
-                    print colored(n + " has missed three consecutive blocks ", 'red')
-                    print subs[0]
-                    print "Total blocks missed " + str(keys)
-    consecutive_blocks()
-
 
 # Global loop for url list
-for i in url:
-    site_running(i)
-    status(i)
-    net_info(i)
-    dump_consensus(i)
-    scan(i)
-    print '\n'
+# for i in url:
+#     site_running(i)
+#     status(i)
+#     net_info(i)
+#     dump_consensus(i)
+#     scan(i)
+#     print '\n'
 
 
 # Running scan() in intervals
@@ -382,6 +392,7 @@ for i in url:
 #             scan(i)
 #             print '\n'
 #     time.sleep(120)
+
 
 
 
