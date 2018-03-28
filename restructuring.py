@@ -37,12 +37,14 @@ for i in url:
     class Status:
 
         url_suffix = "/status"
+        
 
         def __init__(self, url):
             self.url = url
  
-
+        counter = 0 
         def get_block_height(self):
+            self.counter +=1
             class Result():
                 def __init__(self, json):
                     self.status=json["result"]
@@ -54,19 +56,22 @@ for i in url:
             latest_block_time = result.status['latest_block_time']
             block_time =  datetime.strptime(latest_block_time, '%Y-%m-%dT%H:%M:%S.%fZ')
             delta = datetime.utcnow() - block_time
+            # print self.counter 
+            if self.counter == 1:
+                if block_time < datetime.utcnow() -timedelta(seconds=120):
+                    print colored("Late block - public consensus error! Delay " + str(delta), 'red')
+                    # print colored("Late block - public consensus error!",'red')
+                    print colored("Latest block time (utc) - " + str(block_time), 'green')
+                    print colored("Latest block height - " + str(block_height), 'green')
+                    
+                else:
+                    print colored("Consensus - OK", 'green')
+                    print colored("Lastest block time (utc) - " + str(block_time), 'green')
+                    print colored("Latest block height - " + str(block_height), 'green')
+            else: pass 
             
-            if block_time < datetime.utcnow() -timedelta(seconds=120):
-                print colored("Late block - public consensus error! Delay " + str(delta), 'red')
-                # print colored("Late block - public consensus error!",'red')
-                print colored("Latest block time (utc) - " + str(block_time), 'green')
-                print colored("Latest block height - " + str(block_height), 'green')
-                
-            else:
-                print colored("Consensus - OK", 'green')
-                print colored("Lastest block time (utc) - " + str(block_time), 'green')
-                print colored("Latest block height - " + str(block_height), 'green')
-                   
             return block_height 
+   
 
     status = Status(i)
     status.get_block_height()
@@ -158,7 +163,7 @@ for i in url:
 
     class Url_Block:
 
-        last_run = 20943
+        last_run = 21092
         url_suffix = "/block?height="
 
         def __init__ (self, url, block_height):
