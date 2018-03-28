@@ -14,6 +14,7 @@ url = [
 ]
 
 
+
 # Monitor that site is up and running
 def site_running(i):
     conn = httplib.HTTPConnection(i, timeout=10)
@@ -29,13 +30,17 @@ def site_running(i):
 
 
 for i in url:
+
+    site_running(i)
+
+
     class Status:
 
         url_suffix = "/status"
 
         def __init__(self, url):
-            self.url = url 
-
+            self.url = url
+ 
 
         def get_block_height(self):
             class Result():
@@ -43,22 +48,24 @@ for i in url:
                     self.status=json["result"]
 
             url = self.url
-            url_data = json.load(urllib2.urlopen("http://"+ url + self.url_suffix))
+            url_data = json.load(urllib2.urlopen("http://"+ i + self.url_suffix))
             result = Result (url_data)
             block_height =  result.status['latest_block_height']
             latest_block_time = result.status['latest_block_time']
             block_time =  datetime.strptime(latest_block_time, '%Y-%m-%dT%H:%M:%S.%fZ')
             delta = datetime.utcnow() - block_time
+            
             if block_time < datetime.utcnow() -timedelta(seconds=120):
                 print colored("Late block - public consensus error! Delay " + str(delta), 'red')
                 # print colored("Late block - public consensus error!",'red')
                 print colored("Latest block time (utc) - " + str(block_time), 'green')
                 print colored("Latest block height - " + str(block_height), 'green')
+                
             else:
                 print colored("Consensus - OK", 'green')
                 print colored("Lastest block time (utc) - " + str(block_time), 'green')
                 print colored("Latest block height - " + str(block_height), 'green')
-
+                   
             return block_height 
 
     status = Status(i)
@@ -73,7 +80,7 @@ for i in url:
                 def __init__(self, json):
                     self.info=json["result"]["peers"]
 
-            url = self.url
+            # url = self.url
             url_data = json.load(urllib2.urlopen("http://"+ i + self.url_suffix))
             peers = Info (url_data)
             count = len(peers.info)
@@ -87,13 +94,13 @@ for i in url:
 
             return count 
 
-        def  get_node_ip(self):
+        def get_node_ip(self):
         # get peer node ip addresses 
             class Info():
                 def __init__(self, json):
                     self.info=json["result"]["peers"]
 
-            url = self.url
+            # url = self.url
             url_data = json.load(urllib2.urlopen("http://"+ i + self.url_suffix))
             peers = Info (url_data)
 
@@ -105,10 +112,10 @@ for i in url:
 
     net_info = Net_Info(i)
     net_info.get_node_count()
-    net_info.get_node_ip()
 
 
-    # Check if all block heights are in sync
+
+    # # Check if all block heights are in sync
     class Dump_Consensus(Net_Info):
 
         url_suffix = "/dump_consensus_state"
@@ -145,13 +152,13 @@ for i in url:
                     pass
 
 
-    consensus= Dump_Consensus(i, net_info.get_node_ip())
+    consensus = Dump_Consensus(i, net_info.get_node_ip())
     consensus.dump_consensus()
-    
+
 
     class Url_Block:
 
-        last_run = 20616
+        last_run = 20943
         url_suffix = "/block?height="
 
         def __init__ (self, url, block_height):
@@ -176,7 +183,7 @@ for i in url:
             return url_block    
 
     url_block = Url_Block(i, status.get_block_height())
-    url_block.get_block_urls()
+    # url_block.get_block_urls()
 
 
     class Url_Validators(Url_Block):
@@ -200,8 +207,8 @@ for i in url:
             return url_validators     
 
     url_validators = Url_Validators(i, status.get_block_height())
-    url_validators.get_validators_urls()
-                
+    # url_validators.get_validators_urls()
+            
 
     class Blockcount:
 
@@ -271,9 +278,10 @@ for i in url:
                 participation = (value * 100) / len(self.url_block)
                 print(key +" "+ str(participation) + '%')
 
-    blockcount = Blockcount(i, url_block.get_block_urls())
-    blockcount.get_blockcount()
-    blockcount.get_block_validators()
+    blockcount = Blockcount(url, url_block.get_block_urls())
+    # blockcount.get_blockcount()
+    # blockcount.get_block_validators()
+    # blockcount.participation(blockcount)
 
 
     class Validatorscount:
@@ -287,7 +295,7 @@ for i in url:
 
         # get validators at validators height
         def get_validatorscount(self):
-    
+
             #create classes
             class ValidatorsHeight():
                 def __init__(self, json):
@@ -350,7 +358,7 @@ for i in url:
                 actual = self.blockcount[key]
                 uptime = (actual * 100) / expected
                 print(key +" "+ str(uptime) + '%')
-   
+
 
         def consecutive_blocks(self, validator_validators_list, validator_validators):
         # difference between expected and actual block validators by block 
@@ -374,24 +382,16 @@ for i in url:
     validatorscount.get_validatorscount()
     validatorscount.get_validators_validators()
 
-    
-
-# Global loop for url list
-# for i in url:
-#     site_running(i)
-#     status(i)
-#     net_info(i)
-#     dump_consensus(i)
-#     scan(i)
-#     print '\n'
+    print '\n'
 
 
-# Running scan() in intervals
-# while(True):
-#     for i in url: 
-#             scan(i)
-#             print '\n'
-#     time.sleep(120)
+
+# # Running scan() in intervals
+# # while(True):
+# #     for i in url: 
+# #             scan(i)
+# #             print '\n'
+# #     time.sleep(120)
 
 
 
