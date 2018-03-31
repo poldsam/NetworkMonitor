@@ -163,7 +163,7 @@ for i in url:
 
     class Url_Block:
 
-        last_run = 21092
+        last_run = 25000
         url_suffix = "/block?height="
 
         def __init__ (self, url, block_height):
@@ -254,19 +254,19 @@ for i in url:
         # get validators at block height
         def get_block_validators(self):
             #create classes
-            class BlockHeight():
+            class HeightByBlock():
                 def __init__(self, json):
-                    self.blockheight=json["result"]["block"]
+                    self.heightbyblock=json["result"]["block"]
 
             total_blocks = len(self.url_block)
             block_validators_list = dict()
             for i in self.url_block:
                 url_data = json.load(urllib2.urlopen(i))
-                block = BlockHeight (url_data)
-                block_height_at = block.blockheight['header']['height']
+                block = HeightByBlock (url_data)
+                block_height_at = block.heightbyblock['header']['height']
                 block_validators = []
                 # print("Got " + i)
-                for k in block.blockheight["last_commit"]["precommits"]:
+                for k in block.heightbyblock["last_commit"]["precommits"]:
                         try:
                             if k['validator_address']:
                                 block_validators.append(k['validator_address'])
