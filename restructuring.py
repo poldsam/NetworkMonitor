@@ -163,7 +163,7 @@ for i in url:
 
     class Url_Block:
 
-        last_run = 25000
+        last_run = 26406
         url_suffix = "/block?height="
 
         def __init__ (self, url, block_height):
@@ -222,23 +222,24 @@ for i in url:
             self.url_block = url_block 
 
 
+        #create classes
+        class HeightByBlock():
+            def __init__(self, json):
+                self.heightbyblock=json["result"]["block"]
+
+
         # get validators at block height
         def get_blockcount(self):
             print colored ("Scanning all blocks...", 'green')
-
-            #create classes
-            class BlockHeight():
-                def __init__(self, json):
-                    self.blockheight=json["result"]["block"]
 
             total_blocks = len(self.url_block)
             # print total_blocks 
             blockcount = dict()
             for i in self.url_block:
                 url_data = json.load(urllib2.urlopen(i))
-                block = BlockHeight (url_data)
+                block = self.HeightByBlock (url_data)
                 # print("Got " + i)
-                for k in block.blockheight["last_commit"]["precommits"]:
+                for k in block.heightbyblock["last_commit"]["precommits"]:
                         try:
                             if k['validator_address']:
                                 if k['validator_address'] not in blockcount:
@@ -253,16 +254,12 @@ for i in url:
 
         # get validators at block height
         def get_block_validators(self):
-            #create classes
-            class HeightByBlock():
-                def __init__(self, json):
-                    self.heightbyblock=json["result"]["block"]
 
             total_blocks = len(self.url_block)
             block_validators_list = dict()
             for i in self.url_block:
                 url_data = json.load(urllib2.urlopen(i))
-                block = HeightByBlock (url_data)
+                block = self.HeightByBlock (url_data)
                 block_height_at = block.heightbyblock['header']['height']
                 block_validators = []
                 # print("Got " + i)
@@ -298,13 +295,15 @@ for i in url:
             self.block_validators_list = block_validators_list
 
 
+        #create classes
+        class ValidatorsHeight():
+            def __init__(self, json):
+                self.validatorsheight=json["result"]
+
+
+
         # get validators at validators height
         def get_validatorscount(self):
-
-            #create classes
-            class ValidatorsHeight():
-                def __init__(self, json):
-                    self.validatorsheight=json["result"]
 
             print colored ("Calculating uptime...", 'green')
 
@@ -313,7 +312,7 @@ for i in url:
             # validator_validators_list = dict()
             for i in self.url_validators:
                 url_data = json.load(urllib2.urlopen(i))
-                result = ValidatorsHeight (url_data) 
+                result = self.ValidatorsHeight (url_data) 
                 # print("Got " + i)
                 for k in result.validatorsheight['validators']:
                     try:
@@ -330,16 +329,12 @@ for i in url:
 
         # get validators at validators height
         def get_validators_validators(self):
-            #create classes
-            class ValidatorsHeight():
-                def __init__(self, json):
-                    self.validatorsheight=json["result"]
 
             total_val_blocks = len(self.url_validators)
             validator_validators_list = dict()
             for i in self.url_validators:
                 url_data = json.load(urllib2.urlopen(i))
-                result = ValidatorsHeight (url_data)
+                result = self.ValidatorsHeight (url_data)
                 validators_block_height_at = result.validatorsheight['block_height']
                 validator_validators = [] 
                 # print("Got " + i)
