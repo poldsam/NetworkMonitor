@@ -388,14 +388,6 @@ for i in url:
 
 
 
-# Running some functions in intervals
-# while(True):
-#     for i in url:
-#         blockcount.participation(blockcount)
-#         validatorscount.uptime(validatorscount)
-#         validatorscount.consecutive_blocks(validator_validators_list, validator_validators)
-#         print '\n'
-#     time.sleep(120)
 
 
 
