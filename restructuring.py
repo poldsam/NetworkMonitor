@@ -375,6 +375,7 @@ for i in url:
                     # check if 3 entries are consecutive
                     subs = [keys[i:i+3] for i in range(len(keys)) if len(keys[i:i+3]) == 3]
                     if len(keys) > 2:
+                        print '\n'
                         print colored(n + " has missed three consecutive blocks " + str(subs[0]), 'red')
                         # print colored(subs[0], 'red')
                         print "Total blocks missed " + str(keys)
