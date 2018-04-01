@@ -9,8 +9,7 @@ import time
 
 
 url = [
-    "35.184.206.51:46657",
-    "35.224.148.135:46657"
+    "35.192.48.94:46657",
 ]
 
 
@@ -111,7 +110,7 @@ for i in url:
 
             node_ip = []
             for k in peers.info:
-              node_ip.append(k['node_info']['listen_addr'])
+                node_ip.append(k['node_info']['listen_addr'])
 
             return node_ip 
 
@@ -163,7 +162,7 @@ for i in url:
 
     class Url_Block:
 
-        last_run = 26406
+        last_run = 14
         url_suffix = "/block?height="
 
         def __init__ (self, url, block_height):
@@ -366,15 +365,18 @@ for i in url:
             for key in self.block_validators_list:
                 delta[key] = list(set(validator_validators_list[key]) - set(self.block_validators_list.get(key, [])))
 
+            # print delta 
+
             for n in validator_validators:
+                # print n 
                 if any (n in val for val in delta.values()):
                     # get keys with missing values
                     keys = [key for key, value in delta.items() if n in value]
                     # check if 3 entries are consecutive
                     subs = [keys[i:i+3] for i in range(len(keys)) if len(keys[i:i+3]) == 3]
-                    if len(subs) > 2:
-                        print colored(n + " has missed three consecutive blocks ", 'red')
-                        print subs[0]
+                    if len(keys) > 2:
+                        print colored(n + " has missed three consecutive blocks " + str(subs[0]), 'red')
+                        # print colored(subs[0], 'red')
                         print "Total blocks missed " + str(keys)
 
 
@@ -386,12 +388,14 @@ for i in url:
 
 
 
-# # Running scan() in intervals
-# # while(True):
-# #     for i in url: 
-# #             scan(i)
-# #             print '\n'
-# #     time.sleep(120)
+# Running some functions in intervals
+# while(True):
+#     for i in url:
+#         blockcount.participation(blockcount)
+#         validatorscount.uptime(validatorscount)
+#         validatorscount.consecutive_blocks(validator_validators_list, validator_validators)
+#         print '\n'
+#     time.sleep(120)
 
 
 
