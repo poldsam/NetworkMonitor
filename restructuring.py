@@ -9,7 +9,8 @@ import time
 
 
 url = [
-    "35.192.48.94:46657",
+    "35.184.237.58:46657",
+    # "35.192.48.94:46657"
 ]
 
 
@@ -52,7 +53,8 @@ for i in url:
             url_data = json.load(urllib2.urlopen("http://"+ i + self.url_suffix))
             result = Result (url_data)
             block_height =  result.status['latest_block_height']
-            latest_block_time = result.status['latest_block_time']
+            latest_block_time_raw = result.status['latest_block_time']   
+            latest_block_time = latest_block_time_raw[0:23]+ "Z"  
             block_time =  datetime.strptime(latest_block_time, '%Y-%m-%dT%H:%M:%S.%fZ')
             delta = datetime.utcnow() - block_time
             # print self.counter 
@@ -162,7 +164,7 @@ for i in url:
 
     class Url_Block:
 
-        last_run = 14
+        last_run = 150642
         url_suffix = "/block?height="
 
         def __init__ (self, url, block_height):
@@ -366,6 +368,8 @@ for i in url:
                 delta[key] = list(set(validator_validators_list[key]) - set(self.block_validators_list.get(key, [])))
 
             # print delta 
+            if delta:
+                print colored("Nodes down", 'red')
 
             for n in validator_validators:
                 # print n 
