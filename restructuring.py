@@ -164,7 +164,7 @@ for i in url:
 
     class Url_Block:
 
-        last_run = 151592
+        last_run = 152234
         url_suffix = "/block?height="
 
         def __init__ (self, url, block_height):
@@ -369,7 +369,8 @@ for i in url:
 
             # print delta 
             if delta:
-                print colored("Nodes down", 'red')
+                # print colored("Nodes down", 'red')
+                print colored("Nodes down - " + ', '.join([str(i) for i in delta.values()[0]]), 'red')
 
             for n in validator_validators:
                 # print n 
