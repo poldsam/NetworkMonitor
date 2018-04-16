@@ -6,6 +6,29 @@ import os, time, httplib
 from termcolor import colored
 import time
 
+#Sends a alert to email
+def alert_via_email(validator_email, validator_pubkey):
+    import requests
+    import os
+    try:
+        mailgun_key = os.environ['MAILGUN']
+    except:
+        print("Please export the MAILGUN_KEY environment variable")
+        exit(1)
+
+    key = mailgun_key
+    sandbox = 'mg.proof-of-audit.com'
+    recipient = 'zaki@manian.org'
+
+    request_url = 'https://api.mailgun.net/v3/{0}/messages'.format(sandbox)
+    request = requests.post(request_url, auth=('api', key), data={
+        'from': 'alert@proof-of-audit.com',
+        'to': recipient,
+        'subject': 'Validator downtime',
+        'text': 'Hello from Mailgun' #@Kristi work on a message to go here
+    })
+
+
 
 
 url = [
